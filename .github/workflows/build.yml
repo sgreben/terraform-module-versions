@@ -9,12 +9,14 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    container:
-      image: golang:1.13.11-alpine3.10
+    strategy:
+      matrix:
+        go-version: [ '1.22.x' ]
+
     steps:
       - name: Install pre-requisites (1)
         run: |
-          apk add --no-cache make jq zip curl git npm libc6-compat
+          sudo apt-get install -y make jq zip curl git npm
       - name: Install pre-requisites (2)
         run: |
           curl -sSLO https://github.com/sgreben/subst/releases/download/1.1.1/subst_1.1.1_linux_x86_64.zip
@@ -29,7 +31,11 @@ jobs:
           which subst;
           hub --help;
       - name: Checkout
-        uses: actions/checkout@master
+        uses: actions/checkout@v4
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: ${{ matrix.go-version }}
       - run: git config user.name "GitHub Actions" && git config user.email "actions@users.noreply.github.com"
       - name: Build
         run: make binaries
